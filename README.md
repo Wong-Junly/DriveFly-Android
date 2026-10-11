@@ -1,2 +1,150 @@
-# DriveFly-Android
-wardogs Android
+# DriveFly Android
+
+这是独立的安卓客户端源码仓库，包含手机应用和 GitHub Actions 构建流程。Windows 接收端和 iOS 客户端分别提供，不包含在此仓库内。
+
+## WARDOGS 地面与飞行布局（2026-10-11 更新）
+
+手机横握。地面固定使用陀螺仪转向：默认左刹车、右油门，设置可互换并保存；中上解锁载具、正中部署补给箱、中下对抗装置。踏板和按钮松手释放。
+
+飞行按用户设计使用三栏、各上下两个按住按钮：
+
+| 位置 | 左侧 | 中间 | 右侧 |
+|---|---|---|---|
+| 上半 | 总距升高 | 解锁载具（L） | 攻击 |
+| 下半 | 总距降低 | 部署补给箱（G） | 对抗装置 |
+
+左右倾斜控制机身横滚，前后倾斜控制俯仰。左侧总距使用按钮，不使用滑块；按住生效、松手释放，上下同时按住抵消，松开一个后恢复仍按住的另一个。飞行方向舵保持中位。
+
+设置中可分别修改飞行 X/Y 反转及映射比例：X 是左右倾斜，Y 是前后倾斜，均默认不反转、100%，比例范围 25%–200%。比例越大，同样倾斜角度产生的输出越大，达到满量程后不继续增大；两轴偏好独立保存。这里的 X/Y 是手机倾斜方向，并非下面的 vJoy 轴名。
+
+屏幕平面距水平面 15° 以内时暂停体感，正面朝上、朝下均生效：转向、横滚、俯仰回中，屏幕按钮和总距仍可操作。抬起后的首个有效姿态重新回中；恢复后可手动校准。
+
+| 操作 | 地面输出 | 飞行输出 |
+|---|---|---|
+| 左右倾斜 | vJoy X 转向 | vJoy X 横滚 |
+| 前后倾斜 | 未使用 | vJoy Z 俯仰 |
+| 地面油门／刹车 | vJoy Y／Z | 未使用 |
+| 总距升高／降低 | 未使用 | vJoy Y／Ry，按住 1，释放 0 |
+| 解锁载具 | 键盘 L | 键盘 L |
+| 部署补给箱 | 键盘 G | 键盘 G |
+| 对抗装置 | vJoy 按钮 2 | vJoy 按钮 2 |
+| 攻击 | 未使用 | vJoy 按钮 4 |
+
+在 WARDOGS 中把解锁、补给绑定到 L、G，其余轴和按钮按表独立绑定。用户飞行截图中的总距升高／降低分别标为 RT／LT，对抗装置标为方向键上；现有程序输出通用 vJoy，实际识别及同时使用键盘与 vJoy 的效果尚未实测。
+
+L/G 按住时按下、松手时释放；断线超过 500ms、正常关闭或输出失败时清理已按住的键。两种模式均不重复输出 vJoy 按钮 1／3。键盘输入进入当前前台程序；若游戏以管理员身份运行，接收端需使用相同权限，见 [微软 SendInput 文档](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-sendinput)。强制结束进程不能保证释放。
+
+手机和 Windows 配套接收端应一起更新。传输字段名 throttle/flaps 为兼容而保留，在新版飞行界面中分别对应总距升高／降低。
+
+一部安卓手机同时提供赛车方向盘和飞机操纵杆，通过同一个 Windows 接收端输出到 vJoy 虚拟手柄。点击顶部的「地面载具 / 飞机」切换模式，电脑自动识别；不需要额外的浏览器或 Python 服务。
+
+## 使用条件
+
+- Android 7.0（API 24）或更高版本；赛车体感需要加速度计和陀螺仪，飞机体感需要 Android 旋转矢量传感器。
+- Windows 10/11 64 位电脑，另行获取并运行 DriveFly Desktop 接收端，并安装 vJoy。Device 1 需启用 X、Y、Z、Rx、Ry 五根轴及 32 个按钮；具体操作请查看随 Windows 接收端提供的说明。
+- 手机和电脑通过 Wi-Fi、USB 网络共享或蓝牙个人区域网络（PAN）互通，允许电脑端在所用网络上接收 UDP 7001。
+
+应用 ID 为 `com.codex.drivefly`，版本 `0.1.0`，可以与原版 DriveLink 共存。
+
+## 安装和连接
+
+1. 按下面的 GitHub Actions 方法获取 APK，或在本机从源码构建。将生成的 `app-debug.apk` 传到手机并安装；手机可能提示为传输 APK 的应用开启安装权限。
+2. 按下面的连接方式建立手机与电脑的网络，启动电脑端。在电脑运行 `ipconfig`，找到该连接对应网络适配器的 IPv4 地址。
+3. 打开手机应用，点击设置图标，选择「Wi-Fi」「USB 网络」或「蓝牙网络」，填写该方式下电脑的 IPv4 地址，点击键盘的完成键保存，再返回手柄页面。
+4. 顶部显示「已连接」表示收到电脑的确认回复。若一直显示「等待电脑」，检查是否选中正确的地址、电脑接收端、防火墙和对应的网络共享；Wi-Fi 还需检查路由器的设备隔离设置。
+5. 选择模式、校准手机，在游戏的控制设置中绑定 vJoy 轴和按钮。
+
+云端构建使用调试签名，签名可能与本机或上一轮构建不同。如果覆盖安装提示签名冲突，需要卸载旧版再安装；卸载会清除应用的本地设置，请重新填写电脑 IP 和调整控制偏好。
+
+进入设置、切到后台、失去窗口焦点、切换载具模式或连接方式会释放当前输入。电脑超过 500 毫秒未收到有效数据时也会释放全部按钮和总距、让体感轴回中。
+
+## Wi-Fi、USB 与蓝牙连接
+
+三种方式分别保存电脑地址。升级时原有电脑地址继续用作 Wi-Fi 地址，USB 和蓝牙地址初始为空。切换方式会断开旧连接；收到所选电脑地址的回复后才显示已连接。选择连接方式只切换已保存的地址和操作提示，网络线路由系统决定，不会自动配对、开启共享或强制切换网络适配器。
+
+| 方式 | 先在系统中完成 | 应填写的电脑地址 |
+|---|---|---|
+| Wi-Fi | 手机和电脑连接同一 Wi-Fi／局域网 | 电脑在该局域网的 IPv4 |
+| USB 网络 | 使用支持数据传输的 USB 线连接电脑；在手机的网络／热点设置中开启 USB 网络共享 | 电脑新出现的 USB 网络适配器 IPv4 |
+| 蓝牙网络 | 手机与电脑配对；手机开启蓝牙网络共享；Windows 加入手机的 PAN，并以接入点方式连接 | 电脑蓝牙个人区域网络适配器 IPv4 |
+
+USB 和蓝牙使用安卓系统的网络共享功能，传输同样的控制数据；蓝牙配对完成后仍需建立 PAN 网络。手机的设置名称和共享支持情况随设备而异，具体步骤见 [Google 安卓网络共享说明](https://support.google.com/android/answer/9059108?hl=zh-Hans)。
+
+Windows 11 可在「设置 → 蓝牙和设备 → 设备」展开已配对手机，在「个人区域网络（PAN）」中加入，选择「接入点」再连接。Windows 10 可从蓝牙图标打开个人区域网络，右键手机选择「连接方式 → 接入点」，见 [Microsoft 蓝牙网络连接说明](https://support.microsoft.com/en-us/windows/hardware/bluetooth/connect-to-a-bluetooth-network-in-windows)。
+
+请填写电脑在对应网络上的地址，不是手机的地址，也不要把原先的 Wi-Fi 地址直接当作 USB 或蓝牙地址。每次建立共享后都可以重新查看 `ipconfig`；地址发生变化时只修改对应方式的保存值。
+
+## 控制方式
+
+| 控制 | 赛车 | 飞机 |
+|---|---|---|
+| 体感 | 像方向盘一样左右旋转手机 | 左右倾斜滚转，前后倾斜俯仰 |
+| 踏板／总距 | 油门、刹车，松手释放 | 左侧总距升高／降低按钮，松手释放 |
+| 方向舵 | 未使用 | 未使用，保持中位 |
+| 游戏按钮 | 解锁载具、对抗装置、部署补给箱 | 解锁载具、补给箱、攻击、对抗装置 |
+| 校准 | 横握手机，靠墙竖直放置后，在设置中校准方向盘 | 横握手机保持舒适姿势，点击「以当前姿势回中」 |
+
+飞机轴以校准姿势为基准，具有约 2 度的回中死区，倾斜约 30 度达到满行程，支持两个横屏方向。未收到姿态数据时，界面会提示传感器不支持，回中按钮不可用。左右和前后倾斜的反转、映射比例可在设置中修改。
+
+地面转向灵敏度曲线和转向角度仍可设置；油门和刹车可交换左右位置。手机没有实体方向盘的力反馈或操纵杆的机械回中阻力。
+
+| vJoy 轴 | 赛车绑定 | 飞机绑定 |
+|---|---|---|
+| X | 方向盘 | 滚转 |
+| Y | 油门 | 总距升高 |
+| Z | 刹车 | 俯仰 |
+| Rx | 地面保持零 | 未使用，保持中位 |
+| Ry | 释放为 0 | 总距降低 |
+
+游戏可能需要启用俯仰、方向舵或踏板的反向选项。两种模式应使用各自的游戏控制配置。
+
+## 用 GitHub Actions 构建
+
+可手动启动构建，提交 PR 时也会自动检查，不需要在自己的电脑安装 Android Studio。
+
+1. 新建名为 **DriveFly-Android** 的独立 GitHub 仓库，将本目录的内容提交到仓库默认分支。仓库根目录应直接包含 `app/`、`gradle/`、`gradlew`、`build.gradle.kts` 和 `.github/workflows/build-android.yml`；不能只上传源码 ZIP，也不要在外面再套一层文件夹。
+2. 打开仓库的 **Actions** 页面，选择 **Build DriveFly Android**。首次使用时，按 GitHub 提示启用 Actions。
+3. 点击 **Run workflow**，选择已经提交完整源码的分支，再点击绿色的 **Run workflow**。
+4. 等待任务显示绿色成功标记，打开该次运行，在 **Artifacts** 下载 **DriveFly-Android-debug**，解压得到 `app-debug.apk`。
+5. **DriveFly-Android-test-reports** 提供单元测试的 HTML 和 XML 报告。失败时先查看运行页面展开后的构建日志。
+
+工作流在提交 PR 时自动运行，也支持手动触发；每次运行会使用 Linux、JDK 21、SDK Platform 36 和 Build Tools 36.0.0，执行 `testDebugUnitTest`、`assembleDebug` 与 `compileDebugAndroidTestKotlin`。最后一项仅编译触摸测试，未运行模拟器或真实手机测试。APK 和报告保留 7 天；过期后可重新运行构建。
+
+工作流文件必须存在于默认分支，GitHub 才会提供手动运行入口，见 [GitHub 手动运行工作流说明](https://docs.github.com/en/actions/how-tos/manage-workflow-runs/manually-run-a-workflow)。
+
+## 在本机从源码构建
+
+需要 JDK 21、Android SDK Platform 36 和 Build Tools 36.0.0。项目使用 Gradle 9.3.1、Android Gradle Plugin 9.1.0、Kotlin 2.2.10、Jetpack Compose。可以用支持该 AGP 版本的 Android Studio 打开本目录，或执行：
+
+~~~powershell
+$env:JAVA_HOME = 'C:/path/to/jdk-21'
+$env:ANDROID_HOME = 'C:/path/to/android-sdk'
+.\gradlew.bat testDebugUnitTest assembleDebug compileDebugAndroidTestKotlin
+~~~
+
+生成 APK：`app/build/outputs/apk/debug/app-debug.apk`。首次构建需要下载 Gradle 和 Maven 依赖；有代理的环境需要为 Gradle 配置代理。Debug APK 使用调试签名，适合本地安装和测试。
+
+单元测试覆盖飞机姿态回中、横屏轴转换、死区、反转、映射比例、水平暂停、传感器过期及恢复，以及地面/飞行二进制包的长度、字节顺序和参数检查；另检查滑条初始释放状态、连接地址迁移和独立保存、连接方式切换时释放输入，以及 UDP 确认、超时和停止后状态。UDP 测试临时使用本机 7001 端口，测试时请先关闭电脑接收端。
+
+~~~powershell
+.\gradlew.bat testDebugUnitTest
+~~~
+
+传感器手感、触摸布局、真实 USB／蓝牙共享、驱动和游戏兼容性仍需要安卓手机及 Windows 游戏实测；单元测试不代表已完成这些验证。
+
+## 数据协议
+
+Little endian、无结构体填充；轴值为归一化浮点数。
+
+| 包类型 | 大小 | 字段顺序 |
+|---|---|---|
+| 1，赛车 | 29 字节 | uint8=1；float32 steering/throttle/brake/clutch；uint32 buttons；int64 timestamp |
+| 2，飞机 | 33 字节 | uint8=2；float32 roll/pitch/yaw/throttle/flaps；uint32 buttons；int64 timestamp |
+
+转向、滚转、俯仰、方向舵范围为 -1 至 1，其余轴为 0 至 1。时间戳每包更新，使用手机单调时钟的毫秒数；发送循环约每 10 毫秒一次，实际频率受确认等待和系统调度影响。电脑向收到包的来源回复单字节 `0x7e`，手机用该回复判断连接状态。
+
+`shortcut: 局域网 UDP 未加密且未认证；需要用于不可信网络时再增加配对密钥和认证。` 请勿把 7001 端口转发到公网。
+
+## 来源与许可
+
+基于 [DriveLink Mobile](https://github.com/DevBoiAgru/DriveLinkMobile)，保留其 MIT [LICENSE](LICENSE)。飞机控制需求参考 [virtualHOTAS](https://github.com/vsharma-git/virtualHOTAS)，在原有安卓传感器和 UDP 通道内实现，Windows 配套接收端基于 DriveLink Desktop。
