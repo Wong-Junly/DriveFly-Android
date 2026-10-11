@@ -44,7 +44,7 @@ fun Flight(vm: MainViewModel, modifier: Modifier = Modifier) {
             upHeld = false
             downHeld = false
             vm.onCollectiveChange(false, false)
-            for (button in 0..3) vm.onButtonRelease(button)
+            for (button in 0..5) vm.onButtonRelease(button)
         }
     }
 
@@ -144,6 +144,29 @@ fun Flight(vm: MainViewModel, modifier: Modifier = Modifier) {
                     pressedBackground = ButtonActiveBg
                 ) { Text("对抗装置", color = TextPrimary, textAlign = TextAlign.Center) }
             }
+        }
+
+        Row(
+            modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
+            horizontalArrangement = Arrangement.spacedBy(UIConstants.SpacingMedium)
+        ) {
+            MomentaryButton(
+                modifier = Modifier.weight(1f).heightIn(min = 48.dp),
+                label = "机头左转",
+                onPress = { vm.onButtonPress(4) },
+                onRelease = { vm.onButtonRelease(4) },
+                background = ButtonNormalBg,
+                pressedBackground = ButtonActiveBg
+            ) { Text("机头左转", color = TextPrimary, textAlign = TextAlign.Center) }
+
+            MomentaryButton(
+                modifier = Modifier.weight(1f).heightIn(min = 48.dp),
+                label = "机头右转",
+                onPress = { vm.onButtonPress(5) },
+                onRelease = { vm.onButtonRelease(5) },
+                background = ButtonNormalBg,
+                pressedBackground = ButtonActiveBg
+            ) { Text("机头右转", color = TextPrimary, textAlign = TextAlign.Center) }
         }
     }
 }

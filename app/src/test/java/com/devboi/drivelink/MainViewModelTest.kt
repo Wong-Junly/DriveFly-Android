@@ -3,6 +3,7 @@ package com.devboi.drivelink
 import com.devboi.drivelink.data.InputRepository
 import com.devboi.drivelink.data.SettingsRepository
 import com.devboi.drivelink.network.InputSender
+import com.devboi.drivelink.ui.screens.Screens
 import com.devboi.drivelink.viewmodel.MainViewModel
 import org.junit.Assert.*
 import org.junit.Rule
@@ -14,6 +15,33 @@ import kotlin.math.sin
 
 class MainViewModelTest {
     @get:Rule val files = TemporaryFolder()
+
+    @Test fun flightTurnButtonsReleaseOnModeSettingsAndFocusChanges() {
+        val inputs = InputRepository()
+        val vm = MainViewModel(SettingsRepository(File(files.root, "settings.json")), inputs, InputSender(inputs))
+        vm.changeFlightMode(true)
+        vm.onButtonPress(4)
+        vm.onButtonPress(5)
+        assertEquals(48, inputs.getInputs().buttons)
+        vm.onButtonRelease(4)
+        assertEquals(32, inputs.getInputs().buttons)
+        vm.onButtonRelease(5)
+        assertEquals(0, inputs.getInputs().buttons)
+
+        for (release in listOf<() -> Unit>(
+            { vm.changeFlightMode(false) },
+            { vm.changeScreen(Screens.Settings) },
+            { vm.pauseInputs() }
+        )) {
+            vm.changeScreen(Screens.Home)
+            vm.changeFlightMode(true)
+            vm.onButtonPress(4)
+            vm.onButtonPress(5)
+            assertEquals(48, inputs.getInputs().buttons)
+            release()
+            assertEquals(0, inputs.getInputs().buttons)
+        }
+    }
 
     private fun rotation(axis: Int, degrees: Double): FloatArray {
         val half = Math.toRadians(degrees) / 2

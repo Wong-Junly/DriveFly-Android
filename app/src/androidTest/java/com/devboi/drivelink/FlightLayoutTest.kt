@@ -60,15 +60,25 @@ class FlightLayoutTest {
         val supply = compose.onNodeWithContentDescription("部署补给箱").fetchSemanticsNode().boundsInRoot.center
         val attack = compose.onNodeWithContentDescription("攻击").fetchSemanticsNode().boundsInRoot.center
         val countermeasures = compose.onNodeWithContentDescription("对抗装置").fetchSemanticsNode().boundsInRoot.center
+        val turnLeft = compose.onNodeWithContentDescription("机头左转").fetchSemanticsNode().boundsInRoot.center
+        val turnRight = compose.onNodeWithContentDescription("机头右转").fetchSemanticsNode().boundsInRoot.center
         assertTrue(unlock.x < attack.x)
         assertTrue(unlock.y < supply.y)
         assertTrue(attack.y < countermeasures.y)
-        for ((position, mask) in listOf(unlock to 1, supply to 4, attack to 8, countermeasures to 2)) {
+        assertTrue(turnLeft.x < turnRight.x)
+        assertTrue(turnLeft.y > supply.y)
+        for ((position, mask) in listOf(unlock to 1, supply to 4, attack to 8, countermeasures to 2, turnLeft to 16, turnRight to 32)) {
             compose.onRoot().performTouchInput { down(0, position) }
             compose.runOnIdle { assertEquals(mask, inputs.getInputs().buttons) }
             compose.onRoot().performTouchInput { up(0) }
             compose.runOnIdle { assertEquals(0, inputs.getInputs().buttons) }
         }
+        compose.onRoot().performTouchInput { down(0, turnLeft); down(1, turnRight) }
+        compose.runOnIdle { assertEquals(48, inputs.getInputs().buttons) }
+        compose.onRoot().performTouchInput { up(0) }
+        compose.runOnIdle { assertEquals(32, inputs.getInputs().buttons) }
+        compose.onRoot().performTouchInput { cancel() }
+        compose.runOnIdle { assertEquals(0, inputs.getInputs().buttons) }
         val collective = compose.onNodeWithContentDescription("总距升高，按住升高，松手停止").fetchSemanticsNode().boundsInRoot.center
         compose.onRoot().performTouchInput { down(0, collective); down(1, attack) }
         compose.runOnIdle {
